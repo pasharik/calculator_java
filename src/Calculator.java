@@ -15,13 +15,14 @@ import static java.util.Arrays.asList;
  */
 public class Calculator extends JPanel implements ActionListener {
 
-    private static final Pattern numberPattern = Pattern.compile("[-]*\\d+");
+    private static final Pattern numberPattern = Pattern.compile("[-]*[\\d\\.]+");
     String[] a = new String[]{"1", "2", "3", "+", "4", "5", "6", "-", "7", "8", "9", "*", "0", "C", "=", "/"};
     JPanel[] panels = new JPanel[5];
     protected JTextField txt;
     Dimension buttonDimension = new Dimension(50, 30);
     Font font = new Font("Times new Roman", Font.BOLD, 14);
     protected boolean isNew = true;
+    protected boolean isCalculated = false;
 
     public Calculator() {
         txt = new JTextField("0");
@@ -78,29 +79,35 @@ public class Calculator extends JPanel implements ActionListener {
         JButton b = (JButton) e.getSource();
         String s = b.getText();
         if (isNumber(s)) {
+            if (isCalculated) {
+                txt.setText("");
+            }
             if (isNew) {
                 txt.setText("");
                 isNew = false;
             }
             txt.setText(txt.getText() + s);
+            isCalculated = false;
         } else if ("=".equals(s)) {
             trimLastOperator();
-            try {
-                txt.setText("" + calculate(txt.getText()));
-            } catch (ArithmeticException ex) {
-                txt.setText("NaN");
-            }
+            float res = calculate(txt.getText());
+            if (Float.isInfinite(res)) isNew = true;
+            txt.setText("" + res);
+            isCalculated = true;
         } else if ("C".equals(s)) {
             isNew = true;
             txt.setText("0");
+            isCalculated = false;
         } else {
             if (isNew) return;
             trimLastOperator();
             txt.setText(txt.getText() + " " + s + " ");
+            isCalculated = false;
         }
     }
 
-    public static int calculate(String str) {
+    //Magic starts here
+    public static float calculate(String str) {
         str = str.replaceAll("- ", "+ -"); //replace "1 - 2" with "1 + -2"
         String[] arr = str.split(" ");
         List<String> out = new ArrayList<>();
@@ -119,17 +126,17 @@ public class Calculator extends JPanel implements ActionListener {
             out.add(stOp.pop());
         }
 
-        Stack<Integer> res = new Stack<>();
+        Stack<Float> res = new Stack<>();
         for (String s : out) {
-            if (isNumber(s)) { res.push(Integer.parseInt(s)); }
+            if (isNumber(s)) { res.push(Float.parseFloat(s)); }
             else { doCalc(res, s); }
         }
         return res.pop();
     }
 
-    private static void doCalc(Stack<Integer> stack, String op) {
-        Integer val2 = stack.pop();
-        Integer val1 = stack.pop();
+    private static void doCalc(Stack<Float> stack, String op) {
+        Float val2 = stack.pop();
+        Float val1 = stack.pop();
         switch (op) {
             case "+": stack.push(val1 + val2); break;
             case "-": stack.push(val1 - val2); break;
