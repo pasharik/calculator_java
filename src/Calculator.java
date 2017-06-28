@@ -16,7 +16,7 @@ import static java.util.Arrays.asList;
 public class Calculator extends JPanel implements ActionListener {
 
     private static final Pattern numberPattern = Pattern.compile("[-]*\\d+");
-    String[] a = new String[]{"1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "+", "-", "*", "/", "="};
+    String[] a = new String[]{"1", "2", "3", "+", "4", "5", "6", "-", "7", "8", "9", "*", "0", "C", "=", "/"};
     JPanel[] panels = new JPanel[5];
     protected JTextField txt;
     Dimension buttonDimension = new Dimension(50, 30);
@@ -30,11 +30,11 @@ public class Calculator extends JPanel implements ActionListener {
         txt.setEditable(false);
         txt.setHorizontalAlignment(SwingConstants.RIGHT);
         add(txt);
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 4; i++) {
             panels[i] = new JPanel();
             add(panels[i]);
         }
-        for (int i = 0; i < a.length; i++) b(a[i], panels[i / 3]);
+        for (int i = 0; i < a.length; i++) b(a[i], panels[i / 4]);
     }
 
     private JButton b(String text, JPanel line) {
@@ -84,11 +84,15 @@ public class Calculator extends JPanel implements ActionListener {
             }
             txt.setText(txt.getText() + s);
         } else if ("=".equals(s)) {
-            isNew = true;
             trimLastOperator();
             try {
                 txt.setText("" + calculate(txt.getText()));
-            } catch (ArithmeticException ex) { txt.setText("NaN"); }
+            } catch (ArithmeticException ex) {
+                txt.setText("NaN");
+            }
+        } else if ("C".equals(s)) {
+            isNew = true;
+            txt.setText("0");
         } else {
             if (isNew) return;
             trimLastOperator();
